@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .footer{
+            height: 50px;
+            width: 20%;
+            position: fixed;
+            bottom: 0;
+            font-size: 30px;
+            color: red;
+        }
+        .img{
+            margin-left: 5%;
+        }
+    </style>
+</head>
+<body>
+<div id="main">
+    <div style="width: 80%;margin-left: 10%;background-color: #d6d6d6" >
+        <div v-for="(exam,index) in list">
+            <pre style="width: 100%;">{{exam.question}}</pre>
+            <img class="img" src="">
+            <pre style="width: 100%"><input type="radio" :name="'option'+index" value="A">{{exam.optionA}}</pre>
+            <pre style="width: 100%"><input type="radio" :name="'option'+index" value="B">{{exam.optionB}}</pre>
+            <pre style="width: 100%"><input type="radio" :name="'option'+index" value="C">{{exam.optionC}}</pre>
+            <pre style="width: 100%"><input type="radio" :name="'option'+index" value="D">{{exam.optionD}}</pre>
+        </div>
+        <button style="width: 100%;height: 30px;font-size: 18px;font-weight: bold;background-color: blue;color: white;margin-top: 5%" onclick="submitAnswer()">submit</button>
+        <div id="answerArr">
+            <h1 style="color: red">this's u error question</h1>
+            <div v-for="(exam,index) in answerList">
+                <pre style="width: 100%;">{{exam.question}}</pre>
+                <pre style="width: 100%">{{exam.optionA}}</pre>
+                <pre style="width: 100%">{{exam.optionB}}</pre>
+                <pre style="width: 100%">{{exam.optionC}}</pre>
+                <pre style="width: 100%">{{exam.optionD}}</pre>
+                <pre style="width: 100%;background-color: green;">{{exam.answer}}</pre>
+            </div>
+            <button style="width: 100%;height: 30px;font-size: 18px;font-weight: bold;background-color: blue;color: white;margin-top: 5%" onclick="checkMyScore()">check my score</button>
+        </div>
+    </div>
+    <div class="footer">{{time}} min</div>
+</div>
+</body>
+<script src="static/vue.js"></script>
+<script src="static/jquery-3.3.1.min.js"></script>
+<script>
+    var userAnswer = [];
+    var errorAnswer = [];
+    function checkMyScore() {
+        $.ajax({
+            type:"get",
+            url:"/Exam/OCP/checkScore",
+            success:function (data) {
+                if(data[0] === "success"){
+                    let scoreArr = data[1];
+                    for(var i=0;i<scoreArr.length;i++){
+                        alert("score:"+scoreArr[i].score+",time:"+scoreArr[i].time);
+                    }
+                }
+                else alert("error");
+            }
+        })
+    }
+    function checkAnswer() {
+        if(main.$data.list.length === userAnswer.length){
+            var pass=0;
+            for(var i=0;i<userAnswer.length;i++){
+                let answer = userAnswer[i];
+                let exam = main.$data.list[i];
+                let examAnswer = exam.answer.substring(0,5);
+                if(examAnswer.indexOf(answer) !== -1) pass++;
+                else errorAnswer.push(exam);
+            }
+            if(pass>60) alert("恭喜！你通过了！你答对了："+pass+"题");
+            else alert("抱歉！你不合格！你答对了："+pass+"题");
+            main.$data.answerList = errorAnswer;
+            showAnswer2html();
+            $.ajax({
+               type:'post',
+               url:"/Exam/OCP/submitScore",
+               data:{"score":pass},
+               success:function (data) {
+                   if(data[0] !== "success") alert("上传成绩出错");
+               }
+            });
+        }
+        else alert("数量不相等");
+    }
+    function submitAnswer() {
+        if(main.$data.time>0){
+            let answerArr = document.getElementsByTagName("input");
+            for(var i=0;i<answerArr.length;i++){
+                if(answerArr[i].checked){
+                    userAnswer.push(answerArr[i].value);
+                }
+            }
+            checkAnswer();
+        }
+        else alert("your exam time is ended!");
+    }
+    function showImg() {
+        let img = document.getElementsByClassName("img");
+        if(main.$data.list.length===img.length){
+            for(var i=0;i<img.length;i++){
+                var src = main.$data.list[i].img;
+                if(src!=="") img[i].src="static/img/"+src;
+            }
+        }
+        else console.log("length is not eq,img:"+img.length+",datas:"+datas.length);
+    }
+    function exam() {
+        $.ajax({
+            type:"get",
+            url:"/Exam/OCP",
+            success:function (data) {
+                if(data[0] === "success"){
+                    main.$data.list = data[1];
+                }
+                else console.log("error");
+            }
+        });
+    }
+    var main = new Vue({
+        el:"#main",
+        data:{
+            list:[],
+            answerList:[],
+            time:150
+        },
+        mounted(){
+            window.showAnswer2html = this.showAnswer;
+        },
+        methods:{
+            showAnswer(){
+                this.$forceUpdate();
+            }
+        }
+    });
+    var countTime = function(){
+        if(main.$data.time>0) main.$data.time -=1;
+        else alert("your exam time is ended!");
+    };
+    $(document).ready(function () {
+        exam();
+        window.setInterval(countTime,60000);
+        window.setTimeout(showImg,5000);
+    });
+</script>
+</html>

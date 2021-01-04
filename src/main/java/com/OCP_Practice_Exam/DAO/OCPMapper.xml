@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.OCP_Practice_Exam.DAO.OCPMapper">
+	<resultMap id="OCP_Exam_Map" type="com.OCP_Practice_Exam.Entity.OCP">
+		<result property="id" column="id" />
+		<result property="question" column="question" />
+		<result property="optionA" column="optionA" />
+		<result property="optionB" column="optionB" />
+		<result property="optionC" column="optionC" />
+		<result property="optionD" column="optionD" />
+		<result property="answer" column="answer" />
+		<result property="img" column="img" />
+	</resultMap>
+
+	<select id="OCP_Exam" resultMap="OCP_Exam_Map">
+		select * from OCP;
+	</select>
+	<insert id="submitScore" parameterType="com.OCP_Practice_Exam.Entity.Score">
+		insert into OCP_score (score,time) values (#{Score.score},#{Score.time});
+	</insert>
+	<select id="check_score" resultType="com.OCP_Practice_Exam.Entity.Score">
+		select * from OCP_score;
+	</select>
+</mapper>

@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: "jdbc:mysql://127.0.0.1:3306/oracle_certification?characterEncoding=gbk&useSSL=false&serverTimezone=UTC"
+    username: root
+    password: lqh135158
+    driver-class-name: com.mysql.cj.jdbc.Driver
